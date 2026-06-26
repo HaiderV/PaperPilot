@@ -6,8 +6,8 @@ const storage = multer.diskStorage({
         cb(null, "temp/");
     },
     filename: (req, file, cb) => {
-        const uniqueName = Date.now() + "-" + Math.round(Math.round() * 1e9);
-        cb(null, uniqueName + path.extname(file.originalName));
+        console.log(file);
+        cb(null, Date.now() + ".pdf");
     },
 });
 
