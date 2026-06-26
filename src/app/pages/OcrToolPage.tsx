@@ -10,6 +10,7 @@ export function OcrToolPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [statusMessage, setStatusMessage] = useState("");
   const [remainingRequests, setRemainingRequests] = useState(20);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,24 +66,77 @@ export function OcrToolPage() {
 
     setIsProcessing(true);
     setProgress(0);
+    setError(null);
+    setStatusMessage("Uploading PDF...");
 
-    // Simulate OCR processing
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 10;
+    // Retrieve or create a unique session ID
+    let sessionId = sessionStorage.getItem("paperpilot_session_id");
+    if (!sessionId) {
+      sessionId = "session_" + Math.random().toString(36).substring(2, 15) + "_" + Date.now();
+      sessionStorage.setItem("paperpilot_session_id", sessionId);
+    }
+
+    // Step-by-step progress tracking
+    let currentProgress = 0;
+    const progressInterval = setInterval(() => {
+      if (currentProgress < 15) {
+        currentProgress += 3;
+        setStatusMessage("Uploading PDF...");
+      } else if (currentProgress < 75) {
+        currentProgress += 1.5;
+        setStatusMessage("Running OCR text recognition...");
+      } else if (currentProgress < 90) {
+        currentProgress += 1;
+        setStatusMessage("Generating searchable PDF layout...");
+      } else if (currentProgress < 98) {
+        currentProgress += 0.5;
+        setStatusMessage("Uploading searchable document to cloud...");
+      }
+      setProgress(Math.floor(currentProgress));
+    }, 150);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("sessionId", sessionId);
+
+      const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV 
+        ? "http://localhost:5000" 
+        : "https://backendpilot-rnyj.onrender.com");
+
+      const response = await fetch(`${API_BASE}/api/ocr/upload`, {
+        method: "POST",
+        body: formData,
       });
-    }, 300);
 
-    setTimeout(() => {
+      const data = await response.json();
+      clearInterval(progressInterval);
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "OCR processing failed.");
+      }
+
+      setProgress(100);
+      setStatusMessage("Completed!");
+
+      setTimeout(() => {
+        setIsProcessing(false);
+        setRemainingRequests((prev) => prev - 1);
+        navigate("/output", {
+          state: {
+            fileName: file.name,
+            fileUrl: data.fileUrl,
+            extractedText: data.extractedText,
+          },
+        });
+      }, 600);
+
+    } catch (err: any) {
+      clearInterval(progressInterval);
       setIsProcessing(false);
-      setRemainingRequests((prev) => prev - 1);
-      // Navigate to output page with file data
-      navigate("/output", { state: { fileName: file.name } });
-    }, 3500);
+      setError(err.message || "An unexpected error occurred during OCR.");
+      console.error(err);
+    }
   };
 
   return (
@@ -168,7 +222,7 @@ export function OcrToolPage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">
-                        Processing OCR...
+                        {statusMessage || "Processing OCR..."}
                       </span>
                       <span className="text-primary font-medium">
                         {progress}%

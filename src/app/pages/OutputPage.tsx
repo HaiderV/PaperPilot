@@ -15,6 +15,7 @@ export function OutputPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const fileName = location.state?.fileName || "document.pdf";
+  const fileUrl = location.state?.fileUrl;
 
   useEffect(() => {
     // Redirect to OCR tool if no file data
@@ -24,23 +25,16 @@ export function OutputPage() {
   }, [location.state, navigate]);
 
   const handleDownload = () => {
-    // In a real app, this would trigger the actual download
-    alert("Download started! (This is a demo)");
+    if (fileUrl) {
+      window.open(fileUrl, "_blank");
+    } else {
+      alert("Error: Download URL not found.");
+    }
   };
 
-  const extractedText = `This is a sample extracted text from your PDF document.
+  const extractedText = location.state?.extractedText || `No text was extracted from this PDF, or OCR fallback was used.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-Key Features:
-• Text is now selectable
-• Full search capability enabled
-• Maintains original formatting
-• High accuracy OCR recognition
-
-The document has been successfully processed and is ready for download.`;
+Please check the document and try again.`;
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">

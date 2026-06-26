@@ -24,3 +24,19 @@ export const uploadPDFToCloudinary = async (filePath) => {
 
     }
 };
+
+export const deletePDFFromCloudinary = async (publicId) => {
+    try {
+
+        const result = await cloudinary.uploader.destroy(publicId, {
+            resource_type: "raw",
+        });
+
+        return result;
+
+    } catch (error) {
+
+        throw new Error(`Cloudinary Delete Failed: ${error.message}`);
+
+    }
+};
