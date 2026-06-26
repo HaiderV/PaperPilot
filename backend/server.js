@@ -17,6 +17,13 @@ app.get("/", (req, res) => {
     res.json({
         success: true,
         message: "PaperPilot OCR API is running 🚀",
+        env: {
+            hasCloudinaryName: !!process.env.CLOUDINARY_CLOUD_NAME,
+            hasCloudinaryKey: !!process.env.CLOUDINARY_API_KEY,
+            hasCloudinarySecret: !!process.env.CLOUDINARY_API_SECRET,
+            nodeEnv: process.env.NODE_ENV || "development",
+            port: process.env.PORT || 5000
+        }
     });
 });
 
