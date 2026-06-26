@@ -10,7 +10,12 @@ export const uploadPDF = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "PDF Uploaded Successfully.",
-            file: req.file,
+            file: {
+                originalName: req.file.originalname,
+                fileName: req.file.filename,
+                path: req.file.path,
+                size: req.file.size,
+            },
         });
 
     } catch (error) {
