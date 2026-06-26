@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import ocrRoutes from "./routes/ocr.routes.js";
+import { exec } from "child_process";
 
 dotenv.config();
 
@@ -15,6 +16,23 @@ app.get("/", (req, res) => {
     res.json({
         success: true,
         message: "PaperPilot OCR API is running 🚀",
+    });
+});
+
+app.get("/test-ocr", (req, res) => {
+    exec("ocrmypdf --version", (error, stdout, stderr) => {
+        if (error) {
+            console.log(error);
+            return res.status(500).json({
+                success: false,
+                error: stderr || error.message,
+            });
+        }
+
+        res.json({
+            success: true,
+            version: stdout.trim(),
+        });
     });
 });
 
