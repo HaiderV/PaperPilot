@@ -109,11 +109,20 @@ export function OcrToolPage() {
         body: formData,
       });
 
-      const data = await response.json();
       clearInterval(progressInterval);
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || "OCR processing failed.");
+      let data;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      }
+
+      if (!response.ok) {
+        throw new Error(data?.message || `Server error: ${response.status} ${response.statusText}`);
+      }
+
+      if (!data || !data.success) {
+        throw new Error(data?.message || "OCR processing failed.");
       }
 
       setProgress(100);
