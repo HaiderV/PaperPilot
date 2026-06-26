@@ -12,17 +12,24 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install OCRmyPDF
-RUN pip3 install --break-system-packages ocrmypdf
+RUN python3 -m pip install --break-system-packages ocrmypdf
 
 WORKDIR /app
 
+# Copy package files first for better Docker layer caching
 COPY package*.json ./
 
+# Install Node dependencies
 RUN npm install
 
+# Copy the rest of the application
 COPY . .
 
+# Create temp directory
 RUN mkdir -p temp
+
+# Render provides the PORT environment variable
+ENV PORT=5000
 
 EXPOSE 5000
 
