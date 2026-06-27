@@ -9,7 +9,16 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.use(
+    cors({
+        origin: [
+            "http://localhost:5173",
+            "https://paper-pilot-khaki.vercel.app",
+        ],
+        methods: ["GET", "POST"],
+        credentials: true,
+    })
+);
 app.use(express.json());
 app.use("/api/ocr", ocrRoutes);
 
