@@ -5,6 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { Progress } from "../components/ui/progress";
 import { Upload, FileText, X, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "../components/ui/alert";
+import { toast } from "sonner";
+
+interface OCRResponse {
+  success: boolean;
+  message: string;
+  cloudinaryFile: {
+    publicId: string;
+    secureUrl: string;
+  };
+}
 
 export function OcrToolPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -65,24 +75,69 @@ export function OcrToolPage() {
 
     setIsProcessing(true);
     setProgress(0);
+    setError(null);
 
-    // Simulate OCR processing
+    // Visual progress animation indicator (caps at 95% until response comes)
     const interval = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
+        if (prev >= 95) {
+          return 95;
         }
-        return prev + 10;
+        return prev + 5;
       });
-    }, 300);
+    }, 200);
 
-    setTimeout(() => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("https://backendpilot-rnyj.onrender.com/api/ocr/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        let errMsg = `Server error: ${response.status} ${response.statusText}`;
+        try {
+          const errData = await response.json();
+          if (errData && errData.message) {
+            errMsg = errData.message;
+          }
+        } catch {
+          // ignore json parse errors
+        }
+        throw new Error(errMsg);
+      }
+
+      const data: OCRResponse = await response.json();
+
+      if (!data.success || !data.cloudinaryFile?.secureUrl) {
+        throw new Error(data.message || "OCR processing failed.");
+      }
+
+      setProgress(100);
+      clearInterval(interval);
+
+      // Brief delay so 100% progress is visible
+      setTimeout(() => {
+        setIsProcessing(false);
+        setRemainingRequests((prev) => prev - 1);
+        navigate("/output", {
+          state: {
+            fileName: file.name,
+            fileUrl: data.cloudinaryFile.secureUrl,
+          },
+        });
+      }, 300);
+
+    } catch (err: any) {
+      clearInterval(interval);
       setIsProcessing(false);
-      setRemainingRequests((prev) => prev - 1);
-      // Navigate to output page with file data
-      navigate("/output", { state: { fileName: file.name } });
-    }, 3500);
+      setProgress(0);
+      const errMsg = err.message || "An unexpected error occurred during OCR.";
+      setError(errMsg);
+      toast.error(errMsg);
+    }
   };
 
   return (

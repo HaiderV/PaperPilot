@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { toast } from "sonner";
 import {
   Download,
   CheckCircle2,
@@ -15,6 +16,7 @@ export function OutputPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const fileName = location.state?.fileName || "document.pdf";
+  const fileUrl = location.state?.fileUrl;
 
   useEffect(() => {
     // Redirect to OCR tool if no file data
@@ -24,8 +26,11 @@ export function OutputPage() {
   }, [location.state, navigate]);
 
   const handleDownload = () => {
-    // In a real app, this would trigger the actual download
-    alert("Download started! (This is a demo)");
+    if (fileUrl) {
+      window.open(fileUrl, "_blank");
+    } else {
+      toast.error("Download URL not found.");
+    }
   };
 
   const extractedText = `This is a sample extracted text from your PDF document.

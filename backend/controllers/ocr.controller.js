@@ -1,5 +1,6 @@
 import { runOCR } from "../services/ocr.service.js";
 import { uploadPDFToCloudinary } from "../services/cloudinary.service.js";
+import { deleteFiles } from "../utils/fileCleanup.js";
 
 export const uploadPDF = async (req, res) => {
     try {
@@ -13,6 +14,11 @@ export const uploadPDF = async (req, res) => {
         const { inputPath, outputPath } = await runOCR(req.file.path);
 
         const cloudinaryFile = await uploadPDFToCloudinary(outputPath);
+
+        await deleteFiles([
+            inputPath,
+            outputPath,
+        ]);
 
         return res.status(200).json({
             success: true,
