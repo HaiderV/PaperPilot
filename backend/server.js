@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import ocrRoutes from "./routes/ocr.routes.js";
 import { exec } from "child_process";
+import fs from "fs";
 
 dotenv.config();
 
@@ -28,18 +29,45 @@ app.get("/", (req, res) => {
 });
 
 app.get("/test-ocr", (req, res) => {
-    exec("ocrmypdf --version", (error, stdout, stderr) => {
-        if (error) {
-            console.log(error);
+    const inputPath = "temp/test_input.pdf";
+    const outputPath = "temp/test_output.pdf";
+    
+    // Create a dummy PDF using Ghostscript
+    const createPdfCmd = `gs -dNOPAUSE -sDEVICE=pdfwrite -sOUTPUTFILE=${inputPath} -c "newpath 100 100 moveto 200 200 lineto stroke showpage" -c quit`;
+    
+    exec(createPdfCmd, (gsErr, gsStdout, gsStderr) => {
+        if (gsErr) {
             return res.status(500).json({
                 success: false,
-                error: stderr || error.message,
+                step: "ghostscript",
+                error: gsStderr || gsErr.message
             });
         }
-
-        res.json({
-            success: true,
-            version: stdout.trim(),
+        
+        // Run ocrmypdf on the dummy PDF
+        exec(`ocrmypdf --skip-text ${inputPath} ${outputPath}`, (ocrErr, ocrStdout, ocrStderr) => {
+            // Clean up temp files
+            if (fs.existsSync(inputPath)) {
+                try { fs.unlinkSync(inputPath); } catch (e) {}
+            }
+            if (fs.existsSync(outputPath)) {
+                try { fs.unlinkSync(outputPath); } catch (e) {}
+            }
+            
+            if (ocrErr) {
+                return res.status(500).json({
+                    success: false,
+                    step: "ocrmypdf",
+                    error: ocrStderr || ocrErr.message
+                });
+            }
+            
+            res.json({
+                success: true,
+                message: "OCRmyPDF is fully functional!",
+                stdout: ocrStdout.trim(),
+                stderr: ocrStderr.trim()
+            });
         });
     });
 });
