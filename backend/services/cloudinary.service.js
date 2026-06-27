@@ -11,6 +11,7 @@ export const uploadPDFToCloudinary = async (filePath) => {
         const result = await cloudinary.uploader.upload(filePath, {
             resource_type: "raw",
             folder: "paperpilot/ocr",
+            overwrite: false,
             use_filename: true,
             unique_filename: true,
         });
@@ -21,6 +22,10 @@ export const uploadPDFToCloudinary = async (filePath) => {
         };
 
     } catch (error) {
-        throw new Error(`Cloudinary upload failed: ${error.message}`);
+        console.error("Cloudinary Error:", error);
+
+        throw new Error(
+            JSON.stringify(error, Object.getOwnPropertyNames(error))
+        );
     }
-};
+};  

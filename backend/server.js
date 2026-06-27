@@ -53,23 +53,6 @@ app.get("/test-cloudinary", async (req, res) => {
     }
 });
 
-app.get("/test-cloudinary", async (req, res) => {
-    try {
-
-        const result = await uploadPDFToCloudinary("temp/sample.pdf");
-
-        res.json(result);
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-        });
-
-    }
-});
-
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

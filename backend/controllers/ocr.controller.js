@@ -1,4 +1,5 @@
 import { runOCR } from "../services/ocr.service.js";
+import { uploadPDFToCloudinary } from "../services/cloudinary.service.js";
 
 export const uploadPDF = async (req, res) => {
 
@@ -13,11 +14,11 @@ export const uploadPDF = async (req, res) => {
 
         const { inputPath, outputPath } = await runOCR(req.file.path);
 
-        return res.status(200).json({
+        const cloudinaryFile = await uploadPDFToCloudinary(outputPath);
+
+        return res.json({
             success: true,
-            message: "OCR completed successfully.",
-            inputPath,
-            outputPath,
+            cloudinaryFile,
         });
 
     } catch (error) {
