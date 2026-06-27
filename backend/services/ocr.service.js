@@ -19,6 +19,8 @@ export const runOCR = (inputPath, sidecarPath) => {
             "1",
             "--output-type",
             "pdf",
+            "--jobs",
+            "1",
         ];
 
         if (sidecarPath) {
