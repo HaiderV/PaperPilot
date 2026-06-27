@@ -40,7 +40,10 @@ export const runOCR = (inputPath) => {
                 );
             }
 
-            resolve(outputPath);
+            resolve({
+                inputPath,
+                outputPath,
+            });
 
         });
 

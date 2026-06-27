@@ -11,12 +11,13 @@ export const uploadPDF = async (req, res) => {
             });
         }
 
-        const outputFile = await runOCR(req.file.path);
+        const { inputPath, outputPath } = await runOCR(req.file.path);
 
         return res.status(200).json({
             success: true,
             message: "OCR completed successfully.",
-            outputFile
+            inputPath,
+            outputPath,
         });
 
     } catch (error) {

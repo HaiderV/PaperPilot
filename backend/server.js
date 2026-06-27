@@ -36,6 +36,22 @@ app.get("/test-ocr", (req, res) => {
     });
 });
 
+app.get("/test-cloudinary", async (req, res) => {
+    try {
+
+        const result = await uploadPDFToCloudinary("temp/sample.pdf");
+
+        res.json(result);
+
+    } catch (err) {
+
+        res.status(500).json({
+            message: err.message
+        });
+
+    }
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
