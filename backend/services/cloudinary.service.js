@@ -8,7 +8,6 @@ cloudinary.config({
 
 export const uploadPDFToCloudinary = async (filePath) => {
     try {
-
         const result = await cloudinary.uploader.upload(filePath, {
             resource_type: "raw",
             folder: "paperpilot/ocr",
@@ -16,11 +15,12 @@ export const uploadPDFToCloudinary = async (filePath) => {
             unique_filename: true,
         });
 
-        return result;
+        return {
+            publicId: result.public_id,
+            secureUrl: result.secure_url,
+        };
 
     } catch (error) {
-
-        throw new Error(`Cloudinary Upload Failed: ${error.message}`);
-
+        throw new Error(`Cloudinary upload failed: ${error.message}`);
     }
 };

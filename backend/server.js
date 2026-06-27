@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import ocrRoutes from "./routes/ocr.routes.js";
 import { exec } from "child_process";
+import { uploadPDFToCloudinary } from "./services/cloudinary.service.js";
 
 dotenv.config();
 
@@ -47,6 +48,23 @@ app.get("/test-cloudinary", async (req, res) => {
 
         res.status(500).json({
             message: err.message
+        });
+
+    }
+});
+
+app.get("/test-cloudinary", async (req, res) => {
+    try {
+
+        const result = await uploadPDFToCloudinary("temp/sample.pdf");
+
+        res.json(result);
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message,
         });
 
     }
